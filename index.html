@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Focus Timer</title>
+    
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Pomodoro</h1>
+    
+    <div class="timer-display">
+        <svg width="250" height="250">
+            <circle class="circle-bg" cx="125" cy="125" r="115"></circle>
+            <circle id="progress" class="circle-progress" cx="125" cy="125" r="115" stroke-dasharray="722" stroke-dashoffset="722"></circle>
+        </svg>
+        <div id="timer" class="time-text">25:00</div>
+    </div>
+
+    <div class="controls">
+        <button id="startBtn" class="btn-start">Iniciar</button>
+        <button id="resetBtn" class="btn-reset">Reiniciar</button>
+    </div>
+
+    <div class="settings">
+        <label>Trabajo (min): <input type="number" id="workInput" value="25"></label>
+        <label>Descanso (min): <input type="number" id="breakInput" value="5"></label>
+    </div>
+
+    <div class="stats">
+        <p>Sesiones completadas: <span id="count">0</span></p>
+    </div>
+</div>
+
+<script>
+    let timeLeft = 25 * 60;
+    let totalTime = 25 * 60;
+    let timerId = null;
+    let isWork = true;
+    let count = 0;
+
+    const timerDisplay = document.getElementById('timer');
+    const progress = document.getElementById('progress');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const countDisplay = document.getElementById('count');
+
+    const circumference = 2 * Math.PI * 115;
+    progress.style.strokeDasharray = circumference;
+
+    function updateDisplay() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        const offset = circumference - (timeLeft / totalTime) * circumference;
+        progress.style.strokeDashoffset = offset;
+    }
+
+    function toggleTimer() {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+            startBtn.textContent = 'Iniciar';
+        } else {
+            startBtn.textContent = 'Pausar';
+            timerId = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    if (isWork) {
+                        count++;
+                        countDisplay.textContent = count;
+                        alert('¡Tiempo de descanso!');
+                        timeLeft = document.getElementById('breakInput').value * 60;
+                    } else {
+                        alert('¡A trabajar!');
+                        timeLeft = document.getElementById('workInput').value * 60;
+                    }
+                    totalTime = timeLeft;
+                    isWork = !isWork;
+                    startBtn.textContent = 'Iniciar';
+                    updateDisplay();
+                }
+            }, 1000);
+        }
+    }
+
+    resetBtn.addEventListener('click', () => {
+        clearInterval(timerId);
+        timerId = null;
+        isWork = true;
+        timeLeft = document.getElementById('workInput').value * 60;
+        totalTime = timeLeft;
+        startBtn.textContent = 'Iniciar';
+        updateDisplay();
+    });
+
+    startBtn.addEventListener('click', toggleTimer);
+    updateDisplay();
+</script>
+</body>
+</html>
